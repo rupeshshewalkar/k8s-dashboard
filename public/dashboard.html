@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <!-- Add Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        
+    <!-- Add these meta tags for better mobile experience -->
+    <meta name="theme-color" content="#326ce5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">
+            <img src="/images/kubernetes-logo.png" alt="Kubernetes Logo" > <!-- Kubernetes logo -->
+            <img src="/images/kubernetes-logo-text.svg" alt="Kubernetes Logo Text" > <!-- Kubernetes logo text -->
+        </a>        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown">
+                        <i class="fas fa-user"></i> <span id="usernameDisplay"></span>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        <a class="dropdown-item" href="#" id="logoutButton">Logout</a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container-fluid">
+        <!-- Add a logout button -->
+        <div class="card">
+            <div class="card-body">
+                <form id="searchForm" class="form-inline">
+                    <div class="form-group">
+                        <label for="namespace" class="mr-2">Namespace:</label>
+                        <select id="namespace" name="namespace" class="form-control">
+                            <option value="">Select a Namespace</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="resourceType" class="mr-2">Resource Type:</label>
+                        <select id="resourceType" name="resourceType" class="form-control">
+                            <option value="deployment">Deployment</option>
+                            <option value="statefulset">StatefulSet</option>
+                            <option value="pod">Pod</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="search" class="form-control" placeholder="Search by name..." />
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="labelSearch" class="form-control" placeholder="Search by label..." />
+                    </div>
+                    <div class="form-group">
+                        <label for="strict" class="mr-2">Strict:</label>
+                        <input type="checkbox" id="strict" />
+                    </div>
+                    <button type="button" id="searchButton" class="btn btn-primary"><i class="fas fa-search"></i> Search</button>
+                    <button type="button" id="rolloutRestartButton" class="btn btn-warning"><i class="fas fa-sync-alt"></i> Rollout Restart</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <table id="resourcesTable" class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll" class="resourceCheckbox"></th>
+                            <th>Namespace</th>
+                            <th>Resource Type</th>
+                            <th>Name</th>
+                            <th>Labels</th>
+                            <th>Ready</th>
+                            <th>Available</th>
+                            <th>Up-to-date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resourcesList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="/js/common.js"></script>
+    <script src="/js/dashboard.js"></script>
+</body>
+</html>

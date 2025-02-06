@@ -1,0 +1,146 @@
+:root {
+    --primary-color: #326ce5;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+    --gradient-primary: linear-gradient(135deg, #326ce5 0%, #2a58c4 100%);
+    --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    --transition: all 0.3s ease-in-out;
+}
+
+body {
+    background: var(--gradient-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.signin-container {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    height: 60vh; /* Full viewport height */
+    background-color: #f8f9fa; /* Background color */
+}
+.signin-card {
+    position: relative; /* Allow absolute positioning of children */
+    width: 800px; /* Fixed width for the card */
+    padding: 150px; /* Padding inside the card */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    background-color: white; /* Card background color */
+}
+.signin-card h2 {
+    text-align: center; /* Center the heading */
+    margin-bottom: 20px; /* Space below the heading */
+}
+
+
+.signin-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1));
+    transform: rotate(45deg);
+    pointer-events: none;
+}
+
+.navbar-brand {
+    position: relative;
+    margin-bottom: 2rem;
+    text-align: center;
+    display: block;
+    left: auto;
+    top: auto;
+}
+
+.navbar-brand img {
+    height: 48px;
+    margin: 0 8px;
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover img {
+    transform: scale(1.05);
+}
+
+.form-inline {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    bottom: auto;
+    left: auto;
+    width: 100%;
+}
+
+.form-inline {
+    flex-wrap: nowrap; /* Prevent wrapping */
+    justify-content: space-between; /* Space between elements */
+}
+.form-inline .form-group {
+    margin-right: 15px; /* Consistent spacing between form elements */
+}
+.form-control {
+    font-size: 1.1rem; /* Increased font size for inputs */
+    padding: 2px; /* Increased padding for better touch targets */
+    min-width: 450px; /* Set a minimum width for inputs */
+    max-width: 750px; /* Set a maximum width for dropdowns */
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(50, 108, 229, 0.15);
+}
+
+.btn-custom {
+    background: var(--gradient-primary);
+    border: none;
+    padding: 1rem 2rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: 8px;
+    transition: var(--transition);
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-custom::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1));
+    transform: rotate(45deg);
+    transition: var(--transition);
+}
+
+.btn-custom:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-custom:hover::after {
+    transform: rotate(45deg) translateX(50%);
+}
+
+.label-cell {
+    background: rgba(209, 236, 241, 0.5);
+    border: 1px solid rgba(50, 108, 229, 0.15);
+    padding: 6px 19px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    margin: 4px;
+    backdrop-filter: blur(4px);
+}
+

@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "k8s-dashboard.fullname" . }}-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "k8s-dashboard.name" . }}
+  policyTypes:
+  - Ingress
+  ingress:
+    - ports:
+      - port: {{ .Values.service.port }}
+        protocol: TCP
+      from:
+        - podSelector:
+            matchExpressions:
+              - key: bottomline.com/component
+                operator: In
+                values:
+                  - backend
+                  - gateway
+                  - security
+                  - job
+                  - cron-job
+                  - messaging
+                  - temporal-worker
+                  {{- range .Values.ingressPodComponents }}
+                  - {{.}}
+                  {{- end }}

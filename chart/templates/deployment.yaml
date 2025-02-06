@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "k8s-dashboard.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "k8s-dashboard.name" . }}
+    helm.sh/chart: {{ include "k8s-dashboard.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    fm.bottomline.com/enable-btiq-filebeat: "true"
+    fm.bottomline.com/enable-secrets: "false"
+    fm.bottomline.com/enable-stunnel: "true"
+    fm.bottomline.com/component:  {{ include "k8s-dashboard.bottomline.component" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "k8s-dashboard.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "k8s-dashboard.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        bottomline.com/component: {{include "k8s-dashboard.bottomline.component" .}}
+        bottomline.com/logging: java
+        bottomline.com/serviceName: {{ .Values.service.targetSelector | default .Values.nameOverride }}
+      {{- if .Values.firewallGroups }}
+      annotations:
+        fw_group: {{ .Values.firewallGroups }}
+      {{- end }}
+    spec:
+      volumes:
+        - name: bottomline-iq-data
+          emptyDir: {}
+        - name: logs-data
+          emptyDir: {}
+        - name: filebeat-config-volume
+          configMap:
+            name: {{ include "k8s-dashboard.fullname" . }}-filebeat
+      containers:
+        {{- if index .Values "runtime" }}
+        - name: {{ include "k8s-dashboard.name" . }}
+          image: "{{ index .Values.runtime.image.repository }}:{{ index .Values.runtime.image.tag }}"
+          imagePullPolicy: {{ index .Values.runtime.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            - name: "JAVA_OPTS"
+              value: {{ include "k8s-dashboard.javaOpts" . }}
+            - name: "DEFAULT_LOG_LEVEL_PATTERN"
+              value: "XID_%X{transaction.id} TID_%X{trace.id} SID_%X{span.id} CID_%X{bt.correlation.id} TENANT_%X{authenticated.tenant} SLN_UA CLIENTID_%X{authenticated.client.id} UID_%X{authenticated.user.id} --- %5p"
+            {{- if .Values.apm}}
+            - name: "APM_SERVER_URL"
+              value: {{include "k8s-dashboard.apm.host" .}}
+            {{- end}}
+            - name: "NAMESPACE"
+              value: "{{ .Release.Namespace }}"
+            # https://stackoverflow.com/a/68807258
+          {{- include "keyToEnvs" (dict "values" .Values.customEnv "prefix" "") | indent 12}}
+{{- if .Values.extraEnvs }}
+{{ toYaml .Values.extraEnvs | indent 12 }}
+{{- end }}
+          resources:
+            requests:
+              cpu: {{include "dig" (dict "map" .Values "key" "runtime.resources.requests.cpu" "default" "300m")}}
+              memory: {{include "dig" (dict "map" .Values "key" "runtime.resources.requests.memory" "default" "500Mi")}}
+            limits:
+              memory: {{ include "dig" (dict "map" .Values "key" "runtime.resources.limits.memory" "default" "500Mi") }}
+              {{if .Values.runtime.resources.limits.cpu}}
+              cpu: {{include "dig" (dict "map" .Values "key" "runtime.resources.limits.cpu")}}
+              {{end}}
+          volumeMounts:
+            - name: logs-data
+              mountPath: {{ .Values.server.log.path }}
+        {{- end }}
+    {{- with .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+

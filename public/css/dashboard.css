@@ -1,0 +1,212 @@
+:root {
+    --primary-color: #326ce5;
+    --secondary-color: #6c757d;
+    --success-color: #28a745;
+    --info-color: #17a2b8;
+    --warning-color: #ffc107;
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+    --gradient-primary: linear-gradient(135deg, #326ce5 0%, #2a58c4 100%);
+    --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    --transition: all 0.3s ease-in-out;
+}
+
+body {
+    background-color: #f4f6f9;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+}
+
+/* Modern navbar */
+.navbar {
+    background: var(--gradient-primary);
+    box-shadow: var(--shadow-md);
+    padding: 0.75rem 1.5rem;
+}
+
+.navbar-brand {
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+.navbar-brand img {
+    height: 32px;
+    margin-right: 12px;
+    transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover img {
+    transform: scale(1.05);
+}
+
+.nav-link {
+    color: rgba(255, 255, 255, 0.85) !important;
+    padding: 0.5rem 1.25rem !important;
+    border-radius: 8px;
+    transition: var(--transition) !important;
+}
+
+.nav-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white !important;
+}
+
+.nav-link i {
+    margin-right: 8px;
+    width: 20px;
+    text-align: center;
+}
+
+.dropdown-menu {
+    border: none;
+    box-shadow: var(--shadow-md);
+    margin-top: 8px !important;
+}
+
+.dropdown-item {
+    padding: 0.75rem 1.5rem;
+    transition: var(--transition);
+}
+
+/* Modern cards */
+.card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    background: white;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1.25rem 1.5rem;
+}
+
+.card-title {
+    font-weight: 600;
+    margin-bottom: 0;
+    font-size: 1.25rem;
+}
+
+/* Improved table */
+.table {
+    border-radius: 12px;
+    overflow: hidden;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table thead th {
+    background: var(--gradient-primary);
+    color: white;
+    border: none !important;
+    padding: 1rem 1.25rem;
+    font-weight: 500;
+    vertical-align: middle;
+}
+
+.table tbody td {
+    padding: 1rem 1.25rem;
+    background: white;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    transition: var(--transition);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table tbody tr:hover td {
+    background: #f8f9fa;
+    transform: scale(1.02);
+}
+
+/* Modern form elements */
+.form-control {
+    border: 0.5px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    /*padding: 0.75rem 1rem; */
+    transition: var(--transition);
+    font-size: 1rem; /* Increased font size for inputs */
+    padding: 2px; /* Increased padding for better touch targets */
+    min-width: 150px; /* Set a minimum width for inputs */
+    max-width: 200px; /* Set a maximum width for dropdowns */
+
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(50, 108, 229, 0.15);
+}
+
+.btn {
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    transition: var(--transition);
+    border: none;
+}
+
+.btn-primary {
+    background: var(--gradient-primary);
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #ffab00 100%);
+    color: white;
+}
+
+/* Labels styling */
+.label-cell {
+    background-color: #d7dcfb; /* Light blue background for label cells */
+    font-size: 0.85rem; /* Smaller font size for labels */
+    padding: 4px; /* Reduced padding for label cells */
+    border-radius: 6px; /* Rounded corners for label cells */
+    display: inline-block; /* Ensure labels are inline */
+    margin-bottom: 6px; /* Space between labels */
+}
+
+.toggle-labels {
+    color: #02346e;
+    cursor: pointer;
+    font-size: 0.8rem;
+    margin-left: 5px;
+}
+.hidden-labels {
+    display: none;
+}
+/* Highlight effect */
+.highlighted {
+    background: #e3f2fd !important;
+    position: relative;
+}
+
+.highlighted::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background: var(--primary-color);
+}
+.form-inline {
+    flex-wrap: nowrap; /* Prevent wrapping */
+    justify-content: space-between; /* Space between elements */
+}
+.form-inline .form-group {
+    margin-right: 15px; /* Consistent spacing between form elements */
+}

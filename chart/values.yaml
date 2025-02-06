@@ -1,0 +1,109 @@
+nameOverride: {} # Override with your deployment name
+
+
+replicaCount: 1
+
+
+# To define runtime micro service
+runtime:
+  image:
+    repository: harbor-ny2n.saas-n.com/fm/k8s-dashboard
+    tag: latest
+  pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+
+lookup: # If not defined will use your deployment name, defined via nameOverride
+
+
+# To define either when apm is being used
+apm: {}
+#  server:
+#    host: ch02vles0001.emea-bottomline.root.bottomline.com
+#    cidr: 10.122.4.95/32
+#    port: 8200
+
+
+customEnv: {}
+  # my_custom_env: my_value # Will produce MY_CUSTOM_ENV: my_value
+  #
+  # my:
+  #   env1: one # Will produce MY_ENV1: one
+#   env2: two # Will produce MY_ENV2: two
+
+firewallGroups: {}
+# FMCLOUD_NY2NP2_PODS_ARTEMIS
+
+server:
+  log:
+    path: /opt/bottomline-iq/logs
+
+log:
+  format:
+    type: "fm-log-format-generic-v1"
+
+service: {}
+#  type: ClusterIP
+#  clusterIp: None
+#  apiPort: 9073
+#  healthPort: 9173
+#  name: "ServiceName" # Helpful during gitlab migration
+#  targetSelector: "Target label to use while selecting service Pods" # Helpful during gitlab migration to target all pods (argo + flux)
+
+# Generate netpol to reach IAM
+# Used by templates/network-policies/network-policy-security.yaml
+# To define the security network polices to reach IAM
+security: {}
+#  port: 8000
+
+# To define to generate network policies to reach external services
+external: {}
+#  cidr:
+#    10.243.16.11/32: #FMLSB GTF PROD
+#      1565: TCP
+#      1566: TCP
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 90
+  # periodSeconds: 5
+  # failureThreshold: 5
+  # timeoutSeconds: 5
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 90
+  # timeoutSeconds: 1
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+internetProxy: {}
+
+gateway: {}
+
+# Generate a network policy to allow cross namespace network.
+# Used by: templates/network-policies/network-policy-cross-namespace.yaml
+crossNamespace: {}
+#  namespace:
+#    btiq-ny2-integration-gateway:
+#      8040: TCP
+
+# location for .properties, default is /data/bottomline-iq as it is set in docker image using -Dhome.directory
+homeDirectory: {}
+
+
+# Generate a network policy to allow network from/to elasticsearch
+# Used by templates/network-policies/network-policy-elasticsearch.yaml
+# Overrider properties for elasticsearch from releases values.
+elasticsearch: {}
+
+extraJavaOptions: >-
+

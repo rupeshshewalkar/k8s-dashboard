@@ -1,0 +1,82 @@
+# Java #
+*.class
+
+# Maven #
+dependency-reduced-pom.xml
+
+# VS Code #
+.vscode/
+
+# Eclipse #
+
+*.pydevproject
+.project
+.metadata
+bin/**
+tmp/**
+tmp/**/*
+*.tmp
+*.bak
+*.swp
+*.rpm
+*~.nib
+local.properties
+.classpath
+.settings/
+.loadpath
+*.zip
+*.tar.gz
+
+# External tool builders
+.externalToolBuilders/
+
+# Locally stored "Eclipse launch configurations"
+*.launch
+
+# CDT-specific
+.cproject
+
+# PDT-specific
+.buildpath
+
+# IntelliJ
+
+.idea
+*.iml
+*.ipr
+*.iws
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# Maven #
+target/
+overlays/
+
+# Nodejs #
+package-lock.json
+
+# Sonar #
+.sonar/
+
+# MacOS
+.DS_Store*
+
+# Application Logs #
+*.log*
+nohup.out
+
+# KeyStore #
+.keys.properties
+
+# Certificates
+*.jks
+.rnd
+certificates/certs/*
+!certificates/certs/gtframe-ca-certificate.pem
+!certificates/certs/gtframe-ca-key.pem
+!certificates/certs/gtframe-truststore.jks
+
+logs/*

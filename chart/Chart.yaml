@@ -1,0 +1,7 @@
+name: k8s-dashboard
+version: 2025.1.2-SNAPSHOT
+appVersion: 2022.8.0
+apiVersion: v1
+description: Centralized Financial Micro Services | k8s-dashboard
+home: https://www.bottomline.com/
+icon: https://www.bottomline.com/favicon.ico
