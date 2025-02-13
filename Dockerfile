@@ -40,7 +40,7 @@ RUN chown appuser:appgroup /app
 
 # Copy pre-built binary from builder
 COPY --from=builder --chown=appuser:appgroup /app/main /app/main
-
+COPY --from=builder --chown=appuser:appgroup /app/public /app/public
 # Drop privileges
 USER appuser
 

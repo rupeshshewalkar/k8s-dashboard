@@ -210,6 +210,7 @@ body {
 .form-inline .form-group {
     margin-right: 15px; /* Consistent spacing between form elements */
 }
+<<<<<<< HEAD
 .restarting {
     background-color: #fff3cd !important; /* Yellow for in-progress */
     transition: background-color 0.3s ease;
@@ -225,4 +226,23 @@ body {
   
 .highlighted {
     background-color: #e2e3e5 !important;
+=======
+/* Highlight updating rows */
+.updating-row {
+    background-color: #fff3cd !important; /* Light yellow background */
+}
+
+/* Add this to your CSS file */
+.spinner {
+    color: #f0210e; /* Dark yellow to match highlight */
+    font-size: 1.2rem; /* Increase size for better visibility */
+    margin-right: 10px; /* Increased space between spinner and deployment name */
+    animation: spin 1s linear infinite; /* Custom spin animation */
+}
+
+/* Custom spin animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+>>>>>>> 1566292 (few changes add)
 }

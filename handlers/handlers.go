@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -33,7 +35,6 @@ type DeploymentResource struct {
 	Namespace    string            `json:"namespace"`
 	Ready        string            `json:"ready"`
 	UpToDate     string            `json:"up_to_date"`
-	Available    string            `json:"available"`
 	Age          string            `json:"age"`
 	Labels       map[string]string `json:"labels"`
 	ResourceType string            `json:"resourceType"`
@@ -96,6 +97,7 @@ func GetDeployments(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
+
 	clientset, err := validateKubeConfig(sessions[sessionToken].KubeconfigContent)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate kubeconfig: " + err.Error()})
@@ -112,15 +114,54 @@ func GetDeployments(c *gin.Context) {
 
 	var resourceList []DeploymentResource
 	for _, d := range deployments.Items {
-		readyReplicas := d.Status.ReadyReplicas // Replicas that are currently ready
-		totalReplicas := *d.Spec.Replicas       // Total desired replicas
+		totalReplicas := int(d.Status.Replicas)
+		if d.Spec.Replicas != nil {
+			totalReplicas = int(*d.Spec.Replicas) // Convert *int32 to int
+		}
+
+		readyReplicas := int(d.Status.ReadyReplicas)             // Pods that are fully ready
+		availableReplicas := int(d.Status.AvailableReplicas)     // Pods that are running and available
+		updatedReplicas := int(d.Status.UpdatedReplicas)         // Pods that have been updated to the latest version
+		unavailableReplicas := int(d.Status.UnavailableReplicas) // Pods that are missing or failed
+
+		// Default Status: ReadyReplicas / TotalReplicas
+		statusMessage := fmt.Sprintf("%d/%d", readyReplicas, totalReplicas)
+
+		// Check if rollout is in progress
+		isUpdating := false
+		for _, condition := range d.Status.Conditions {
+			if condition.Type == appsv1.DeploymentProgressing && condition.Status == corev1.ConditionTrue {
+				isUpdating = true
+			}
+		}
+
+		// Show "Updating..." if rollout is ongoing
+		if isUpdating && (updatedReplicas < totalReplicas || availableReplicas < totalReplicas || unavailableReplicas > 0) {
+			statusMessage = fmt.Sprintf("%d/%d (Updating...)", availableReplicas, totalReplicas)
+		}
+
+		// Show "Unavailable..." if pods are missing
+		if !isUpdating && unavailableReplicas > 0 {
+			statusMessage = fmt.Sprintf("%d/%d (Unavailable...)", availableReplicas, totalReplicas)
+		}
+
+		// Mark as failed if there is a replica failure
+		for _, condition := range d.Status.Conditions {
+			if condition.Type == appsv1.DeploymentReplicaFailure && condition.Status == corev1.ConditionTrue {
+				statusMessage = fmt.Sprintf("%d/%d (Failed)", availableReplicas, totalReplicas)
+			}
+		}
+
+		// Update the status message to reflect the correct ready replicas
+		if readyReplicas < totalReplicas {
+			statusMessage = fmt.Sprintf("%d/%d (Not Ready)", readyReplicas, totalReplicas)
+		}
 
 		resource := DeploymentResource{
 			Name:         d.Name,
 			Namespace:    d.Namespace,
-			Ready:        fmt.Sprintf("%d/%d", readyReplicas, totalReplicas), // Fix: Display as "Ready/Total"
-			UpToDate:     fmt.Sprintf("%d", d.Status.UpdatedReplicas),
-			Available:    fmt.Sprintf("%d", d.Status.AvailableReplicas),
+			Ready:        statusMessage,
+			UpToDate:     fmt.Sprintf("%d", updatedReplicas),
 			Age:          formatDuration(time.Since(d.CreationTimestamp.Time)),
 			Labels:       d.Labels,
 			ResourceType: "Deployment",
@@ -201,6 +242,7 @@ func GetStatefulSets(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
+
 	clientset, err := validateKubeConfig(sessions[sessionToken].KubeconfigContent)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to validate kubeconfig: " + err.Error()})
@@ -217,13 +259,49 @@ func GetStatefulSets(c *gin.Context) {
 
 	var resourceList []StatefulSetResource
 	for _, ss := range statefulSets.Items {
-		readyReplicas := ss.Status.ReadyReplicas // Number of ready replicas
-		totalReplicas := *ss.Spec.Replicas       // Desired replicas
+		totalReplicas := 0
+		if ss.Spec.Replicas != nil {
+			totalReplicas = int(*ss.Spec.Replicas)
+		}
+
+		readyReplicas := int(ss.Status.ReadyReplicas) // Fully Ready Pods
+		//currentReplicas := int(ss.Status.CurrentReplicas)     // Currently running pods
+		updatedReplicas := int(ss.Status.UpdatedReplicas)     // Updated pods (new spec)
+		availableReplicas := int(ss.Status.AvailableReplicas) // Pods that are running and available
+
+		// Default status: ReadyReplicas / TotalReplicas
+		statusMessage := fmt.Sprintf("%d/%d", readyReplicas, totalReplicas)
+
+		// Identify rollout status
+		isUpdating := false
+		for _, condition := range ss.Status.Conditions {
+			if condition.Type == appsv1.StatefulSetConditionType("Progressing") && condition.Status == corev1.ConditionTrue {
+				isUpdating = true
+			}
+		}
+
+		// Show "Updating..." if rollout is ongoing
+		if isUpdating && (updatedReplicas < totalReplicas || availableReplicas < totalReplicas) {
+			statusMessage = fmt.Sprintf("%d/%d (Updating...)", availableReplicas, totalReplicas)
+		}
+
+		// Detect Unavailable pods
+		unavailableReplicas := totalReplicas - availableReplicas
+		if unavailableReplicas > 0 {
+			statusMessage = fmt.Sprintf("%d/%d (Unavailable...)", availableReplicas, totalReplicas)
+		}
+
+		// Mark as failed if pods are stuck
+		for _, condition := range ss.Status.Conditions {
+			if condition.Type == "ReplicaFailure" && condition.Status == corev1.ConditionTrue {
+				statusMessage = fmt.Sprintf("%d/%d (Failed)", availableReplicas, totalReplicas)
+			}
+		}
 
 		resource := StatefulSetResource{
 			Name:         ss.Name,
 			Namespace:    ss.Namespace,
-			Ready:        fmt.Sprintf("%d/%d", readyReplicas, totalReplicas), // Fix: Show "Ready/Total"
+			Ready:        statusMessage,
 			Age:          formatDuration(time.Since(ss.CreationTimestamp.Time)),
 			Labels:       ss.Labels,
 			ResourceType: "StatefulSet",

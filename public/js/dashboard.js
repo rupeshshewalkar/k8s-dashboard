@@ -235,7 +235,7 @@ function displayResources(resources, resourceType) {
     resourcesList.innerHTML = "";
     tableHead.innerHTML = ""
     const headers = {
-        deployment: ["Select", "Namespace", "Resource Type", "Name", "Labels", "Ready", "Available", "Updated", "Age"],
+        deployment: ["Select", "Namespace", "Resource Type", "Name", "Labels", "Ready", "UpToDate", "Age"],
         statefulset: ["Select", "Namespace", "Resource Type", "Name", "Labels", "Ready", "Age"],
         pod: ["Select", "Namespace", "Resource Type", "Name", "Labels", "Ready", "Status", "Restarts", "Age"],
     };
@@ -261,6 +261,7 @@ function displayResources(resources, resourceType) {
         const row = document.createElement("tr");
         row.innerHTML = generateResourceRow(resource, resourceType);
         resourcesList.appendChild(row);
+        applyStatusStyles(row, resource, resourceType); // Add this line
     });
 
     // Handle select all checkbox
@@ -290,8 +291,7 @@ function generateResourceRow(resource, resourceType) {
             <td>${resource.name || "N/A"}</td>
             <td>${formatLabels(resource.labels)}</td>
             <td>${resource.ready || "0"}</td>
-            <td>${resource.available || "0"}</td>
-            <td>${resource.updated || "0"}</td>
+            <td>${resource.up_to_date || "0"}</td>
             <td>${resource.age || "0"}</td>
         `,
         statefulset: `
@@ -383,8 +383,9 @@ async function performRolloutRestart() {
         checkbox.checked = false;
         checkbox.closest('tr').classList.remove('highlighted');
     });
-
+    // In performRolloutRestart function, after unchecking checkboxes:
     alert("Rollout restart triggered for selected resources.");
+<<<<<<< HEAD
     restartingResources.clear();
     selectedResources.forEach(checkbox => {
         const row = checkbox.closest('tr');
@@ -442,6 +443,57 @@ function updateResourceStatusIndicators() {
         }
       }
     });
+=======
+    // Immediately refresh and start polling
+    await handleSearch();
+    let isPolling = true;
+    const pollInterval = setInterval(async () => {
+        if (isPolling) {
+            try {
+                await handleSearch();
+            } catch (error) {
+                console.error("Polling error:", error);
+            }
+        }
+    }, 5000); // Poll every 5 seconds
+    // Stop polling after 2 minutes
+    setTimeout(() => {
+        isPolling = false;
+        clearInterval(pollInterval);
+    }, 120000);
+
+}
+
+// Apply styles to highlight updating resources
+function applyStatusStyles(row, resource, resourceType) {
+    const isUpdating = isResourceUpdating(resource, resourceType);
+    if (isUpdating) {
+        row.classList.add("updating-row");
+
+        // Add spinner icon before the deployment name in the name cell
+        const nameCell = row.querySelector("td:nth-child(4)");
+        const spinner = document.createElement("i");
+        spinner.className = "fas fa-spinner fa-spin spinner"; // Updated class for better styling
+        nameCell.prepend(spinner); // Use prepend to place the spinner before the name
+    }
+}
+// Determine if a resource is still updating
+function isResourceUpdating(resource, resourceType) {
+    switch (resourceType) {
+        case "deployment":
+            const [readyDeploy, totalDeploy] = resource.ready.split('/').map(Number);
+            //const updated = parseInt(resource.updated, 10);
+            return readyDeploy !== totalDeploy;
+        case "statefulset":
+            const [readySS, totalSS] = resource.ready.split('/').map(Number);
+            return readySS !== totalSS;
+        case "pod":
+            const [readyContainers, totalContainers] = resource.ready.split('/').map(Number);
+            return resource.status !== "Running" || readyContainers !== totalContainers;
+        default:
+            return false;
+    }
+>>>>>>> 1566292 (few changes add)
 }
 // Initialize Function
 async function initialize() {
