@@ -1,3 +1,4 @@
+// dashboard.js
 // Initialize DOM Elements
 const elements = {
     namespace: document.getElementById("namespace"),
@@ -37,6 +38,7 @@ function initializeHandsontable() {
         columns: [
             {
                 type: 'checkbox',
+                data: 'selected',
                 className: 'checkbox-header',
                 width: 50
             },
@@ -46,8 +48,8 @@ function initializeHandsontable() {
             {
                 data: 'labels',
                 renderer: labelsRenderer,
-                filter: 'multi_select',
-                filterParams: {
+                filter: {
+                    type: 'multi_select',
                     options: getLabelFilterOptions
                 }
             },
@@ -132,40 +134,57 @@ async function fetchNamespaces() {
     }
 }
 
-// Fetch Deployments
+// Fetch Deployments with label transformation
 async function fetchDeployments(namespace) {
     try {
         const response = await fetch(`/api/v1/deployments/namespace/${namespace}`);
         if (!response.ok) throw new Error("Error fetching deployments");
-        return await response.json();
+        const data = await response.json();
+        return data.map(item => ({
+            ...item,
+            labels: transformLabels(item.labels)
+        }));
     } catch (error) {
         console.error("Error getting deployments:", error);
         return [];
     }
 }
 
-// Fetch StatefulSets
+// Fetch StatefulSets with label transformation
 async function fetchStatefulSets(namespace) {
     try {
         const response = await fetch(`/api/v1/statefulsets/namespace/${namespace}`);
         if (!response.ok) throw new Error("Error fetching stateful sets");
-        return await response.json();
+        const data = await response.json();
+        return data.map(item => ({
+            ...item,
+            labels: transformLabels(item.labels)
+        }));
     } catch (error) {
         console.error("Error getting stateful sets:", error);
         return [];
     }
 }
 
-// Fetch Pods
+// Fetch Pods with label transformation
 async function fetchPods(namespace) {
     try {
         const response = await fetch(`/api/v1/pods/namespace/${namespace}`);
         if (!response.ok) throw new Error("Error fetching pods");
-        return await response.json();
+        const data = await response.json();
+        return data.map(item => ({
+            ...item,
+            labels: transformLabels(item.labels)
+        }));
     } catch (error) {
         console.error("Error getting pods:", error);
         return [];
     }
+}
+
+// Transform labels object to array of "key:value" strings
+function transformLabels(labels) {
+    return Object.entries(labels || {}).map(([key, value]) => `${key}:${value}`);
 }
 
 // Update Handsontable
@@ -182,6 +201,7 @@ function getColumnsConfig() {
     const baseColumns = [
         {
             type: 'checkbox',
+            data: 'selected',
             className: 'checkbox-header',
             width: 50
         },
@@ -191,8 +211,8 @@ function getColumnsConfig() {
         {
             data: 'labels',
             renderer: labelsRenderer,
-            filter: 'multi_select',
-            filterParams: {
+            filter: {
+                type: 'multi_select',
                 options: getLabelFilterOptions
             }
         }
@@ -214,25 +234,50 @@ function getColumnsConfig() {
     ];
 }
 
-// Labels Renderer
+// Labels Renderer with expand/collapse
 function labelsRenderer(instance, td, row, col, prop, value) {
-    td.innerHTML = formatLabelsForTable(value);
+    const MAX_LABELS = 3;
+    const labels = value || [];
+    const visibleLabels = labels.slice(0, MAX_LABELS);
+    const hiddenCount = labels.length - MAX_LABELS;
+    
+    let html = visibleLabels.map(label => 
+        `<div class="label-pill">${label}</div>`
+    ).join('');
+
+    if (hiddenCount > 0) {
+        html += `
+            <div class="label-expander" onclick="toggleLabels(this)">
+                +${hiddenCount} more
+            </div>
+            <div class="hidden-labels" style="display:none">
+                ${labels.slice(MAX_LABELS).map(label => 
+                    `<div class="label-pill">${label}</div>`
+                ).join('')}
+            </div>
+        `;
+    }
+
+    td.innerHTML = html;
+    td.style.whiteSpace = 'normal';
     return td;
 }
 
-// Format Labels for Table
-function formatLabelsForTable(labels) {
-    return Object.entries(labels || {}).map(([key, val]) => 
-        `<span class="label-pill">${key}:${val}</span>`
-    ).join('');
-}
+// Global toggle function for labels
+window.toggleLabels = function(element) {
+    const hiddenLabels = element.nextElementSibling;
+    hiddenLabels.style.display = hiddenLabels.style.display === 'none' ? 'block' : 'none';
+    element.textContent = hiddenLabels.style.display === 'none' ? 
+        `+${element.nextElementSibling.children.length} more` : 
+        '- Show less';
+};
 
 // Get Label Filter Options
-function getLabelFilterOptions(column) {
+function getLabelFilterOptions() {
     const labelsSet = new Set();
     resourceData.forEach(row => {
-        Object.entries(row.labels || {}).forEach(([key, val]) => {
-            labelsSet.add(`${key}:${val}`);
+        (row.labels || []).forEach(label => {
+            labelsSet.add(label);
         });
     });
     return Array.from(labelsSet).sort();
