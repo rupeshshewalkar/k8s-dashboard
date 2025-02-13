@@ -1,18 +1,18 @@
-// dashboard.js
+// Initialize DOM Elements
 const elements = {
     namespace: document.getElementById("namespace"),
     resourceType: document.getElementById("resourceType"),
     hotContainer: document.getElementById("hot-container")
 };
 
-let hot; // Handsontable instance
-let resourceData = []; // Store resources data
+let hot;
+let resourceData = [];
 
 // UI Object
 const ui = {
     populateNamespaces: function(namespaces) {
         const namespaceSelect = elements.namespace;
-        namespaceSelect.innerHTML = ""; // Clear existing options
+        namespaceSelect.innerHTML = "";
         if (namespaces.length === 0) {
             const option = document.createElement("option");
             option.value = "";
@@ -31,16 +31,15 @@ const ui = {
 
 // Initialize Handsontable
 function initializeHandsontable() {
-    console.log("Initializing Handsontable...");
     hot = new Handsontable(elements.hotContainer, {
         data: resourceData,
         colHeaders: ['Select', 'Namespace', 'Type', 'Name', 'Labels', 'Ready', 'Up-to-date', 'Age'],
         columns: [
             {
                 type: 'checkbox',
-                data: 'selected',
                 className: 'checkbox-header',
-                width: 50
+                width: 50,
+                data: 'selected'
             },
             { data: 'namespace', width: 120 },
             { data: 'resourceType', width: 100 },
@@ -62,15 +61,14 @@ function initializeHandsontable() {
         width: '100%',
         height: '100%',
         rowHeaders: true,
-        manualRowMove: true,
         licenseKey: 'non-commercial-and-evaluation',
-        afterChange: (changes) => {
-            if (changes && changes[0][1] === 'selected') {
-                updateRowHighlight(changes[0][0]);
+        afterChange: (changes, source) => {
+            if (source === 'edit' && changes) {
+                const [row, prop, oldValue, newValue] = changes[0];
+                resourceData[row][prop] = newValue;
             }
         }
     });
-    console.log("Handsontable initialized:", hot);
 }
 
 // Event Listeners
@@ -88,7 +86,6 @@ function setupEventListeners() {
     });
 }
 
-// Handle Search Function
 async function handleSearch() {
     const namespace = elements.namespace.value.trim();
     const resourceType = elements.resourceType.value;
@@ -99,16 +96,12 @@ async function handleSearch() {
     }
 
     try {
-        console.log("Fetching resources...");
         const data = await fetchResources(namespace, resourceType);
-        console.log("API Response:", data);
-        
-        resourceData = data.map(item => ({ 
-            ...item, 
-            selected: false 
+        resourceData = data.map(item => ({
+            ...item,
+            selected: false,
+            labels: Object.entries(item.labels || {}).map(([k, v]) => `${k}:${v}`)
         }));
-        console.log("Resource Data:", resourceData);
-        
         updateHandsontable();
         applyStatusHighlighting();
     } catch (error) {
@@ -117,7 +110,6 @@ async function handleSearch() {
     }
 }
 
-// Fetch Resources
 async function fetchResources(namespace, resourceType) {
     const endpoints = {
         deployment: fetchDeployments,
@@ -195,102 +187,41 @@ function transformLabels(labels) {
 
 // Update Handsontable
 function updateHandsontable() {
-    console.log("Updating Handsontable with data:", resourceData);
-    hot.updateSettings({
-        data: resourceData,
-        columns: getColumnsConfig()
-    });
-    hot.render();
+    hot.updateData(resourceData);
 }
 
-// Get Columns Configuration
-function getColumnsConfig() {
-    const baseColumns = [
-        {
-            type: 'checkbox',
-            data: 'selected',
-            className: 'checkbox-header',
-            width: 50
-        },
-        { data: 'namespace', width: 120 },
-        { data: 'resourceType', width: 100 },
-        { data: 'name' },
-        {
-            data: 'labels',
-            renderer: labelsRenderer,
-            filter: {
-                type: 'multi_select',
-                options: getLabelFilterOptions
-            }
-        }
-    ];
-
-    // Add type-specific columns
-    if (elements.resourceType.value === 'pod') {
-        return [...baseColumns, 
-            { data: 'ready' }, 
-            { data: 'status' },
-            { data: 'restarts' },
-            { data: 'age' }
-        ];
-    }
-    return [...baseColumns,
-        { data: 'ready' },
-        { data: 'up_to_date' },
-        { data: 'age' }
-    ];
-}
-
-// Labels Renderer with expand/collapse
 function labelsRenderer(instance, td, row, col, prop, value) {
-    const MAX_LABELS = 3;
-    const labels = value || [];
-    const visibleLabels = labels.slice(0, MAX_LABELS);
-    const hiddenCount = labels.length - MAX_LABELS;
+    td.innerHTML = formatLabelsForTable(value);
+    td.style.whiteSpace = 'normal';
+    return td;
+}
+
+function formatLabelsForTable(labels) {
+    if (!labels || labels.length === 0) return 'No labels';
+    
+    const maxVisible = 3;
+    const visibleLabels = labels.slice(0, maxVisible);
+    const hiddenCount = labels.length - maxVisible;
     
     let html = visibleLabels.map(label => 
         `<div class="label-pill">${label}</div>`
     ).join('');
 
     if (hiddenCount > 0) {
-        html += `
-            <div class="label-expander" onclick="toggleLabels(this)">
-                +${hiddenCount} more
-            </div>
-            <div class="hidden-labels" style="display:none">
-                ${labels.slice(MAX_LABELS).map(label => 
-                    `<div class="label-pill">${label}</div>`
-                ).join('')}
-            </div>
-        `;
+        html += `<div class="text-muted">+${hiddenCount} more</div>`;
     }
 
-    td.innerHTML = html;
-    td.style.whiteSpace = 'normal';
-    return td;
+    return html;
 }
 
-// Global toggle function for labels
-window.toggleLabels = function(element) {
-    const hiddenLabels = element.nextElementSibling;
-    hiddenLabels.style.display = hiddenLabels.style.display === 'none' ? 'block' : 'none';
-    element.textContent = hiddenLabels.style.display === 'none' ? 
-        `+${element.nextElementSibling.children.length} more` : 
-        '- Show less';
-};
-
-// Get Label Filter Options
-function getLabelFilterOptions() {
+function getLabelFilterOptions(column) {
     const labelsSet = new Set();
     resourceData.forEach(row => {
-        (row.labels || []).forEach(label => {
-            labelsSet.add(label);
-        });
+        (row.labels || []).forEach(label => labelsSet.add(label));
     });
     return Array.from(labelsSet).sort();
 }
 
-// Perform Rollout Restart
 async function performRolloutRestart() {
     const selectedRows = resourceData.filter(row => row.selected);
     if (selectedRows.length === 0) {
@@ -300,30 +231,38 @@ async function performRolloutRestart() {
 
     if (!confirm(`Restart ${selectedRows.length} selected resources?`)) return;
 
-    for (const row of selectedRows) {
-        const endpoint = `/${row.resourceType.toLowerCase()}s/${row.namespace}/rollout/${row.name}`;
+    const promises = selectedRows.map(async row => {
+        const endpoint = `/api/v1/${row.resourceType.toLowerCase()}s/${row.namespace}/rollout/${row.name}`;
         try {
-            await fetch(endpoint, { method: 'POST' });
+            const response = await fetch(endpoint, { method: 'POST' });
+            return response.ok;
         } catch (error) {
             console.error("Restart failed:", error);
-            alert(`Failed to restart ${row.name}`);
+            return false;
         }
-    }
+    });
+
+    const results = await Promise.all(promises);
+    const successCount = results.filter(status => status).length;
     
-    alert("Rollout initiated. Refreshing data...");
+    alert(`Successfully restarted ${successCount}/${selectedRows.length} resources`);
     await handleSearch();
 }
 
-// Apply Status Highlighting
 function applyStatusHighlighting() {
-    resourceData.forEach((row, index) => {
-        if (isResourceUpdating(row, row.resourceType)) {
-            hot.setCellMeta(index, 3, 'className', 'updating-row');
+    hot.updateSettings({
+        cells(row, col) {
+            const cellProperties = {};
+            const resource = resourceData[row];
+            
+            if (col === 3 && isResourceUpdating(resource, resource.resourceType)) {
+                cellProperties.className = 'updating-row';
+            }
+            return cellProperties;
         }
     });
 }
 
-// Determine if a resource is still updating
 function isResourceUpdating(resource, resourceType) {
     switch (resourceType) {
         case "deployment":
@@ -340,9 +279,7 @@ function isResourceUpdating(resource, resourceType) {
     }
 }
 
-// Initialize Function
 async function initialize() {
-    console.log("Initializing dashboard...");
     const username = await checkAuthentication();
     const namespaces = await fetchNamespaces();
     ui.populateNamespaces(namespaces);

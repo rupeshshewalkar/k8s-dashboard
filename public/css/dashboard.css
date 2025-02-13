@@ -243,20 +243,15 @@ body {
 }
 
 /* css/dashboard.css */
-/* dashboard.css */
 .hot-container {
     height: 70vh;
-    width: 100%;
     overflow: hidden;
     margin-top: 20px;
+    background: white;
 }
 
-.handsontable th {
-    background-color: #f8f9fa;
-    font-weight: 600;
-    color: #495057;
-    padding: 12px 15px;
-    border-bottom: 2px solid #dee2e6;
+.ht_master .wtHolder {
+    height: 100% !important;
 }
 
 .label-pill {
@@ -269,21 +264,18 @@ body {
     white-space: nowrap;
 }
 
-.label-expander {
-    color: #007bff;
-    cursor: pointer;
-    font-size: 0.8em;
-    margin-top: 4px;
-}
-
-.hidden-labels {
-    margin-top: 4px;
+.checkbox-header {
+    text-align: center;
 }
 
 .updating-row {
     background-color: #fff3cd !important;
+    font-style: italic;
 }
 
-.checkbox-header {
-    text-align: center;
+.handsontable th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    border-color: #dee2e6 !important;
 }
