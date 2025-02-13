@@ -243,23 +243,44 @@ body {
 }
 
 /* css/dashboard.css */
+/* dashboard.css */
 .hot-container {
     height: 70vh;
     overflow: hidden;
     margin-top: 20px;
 }
 
-.ht_master .wtHolder {
-    height: 100% !important;
+.handsontable th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    padding: 12px 15px;
+    border-bottom: 2px solid #dee2e6;
 }
 
 .label-pill {
-    display: inline-block;
+    display: block;
     background: #e0e0e0;
     border-radius: 12px;
-    padding: 2px 8px;
-    margin: 2px;
+    padding: 4px 8px;
+    margin: 2px 0;
     font-size: 0.85em;
+    white-space: nowrap;
+}
+
+.label-expander {
+    color: #007bff;
+    cursor: pointer;
+    font-size: 0.8em;
+    margin-top: 4px;
+}
+
+.hidden-labels {
+    margin-top: 4px;
+}
+
+.updating-row {
+    background-color: #fff3cd !important;
 }
 
 .checkbox-header {
