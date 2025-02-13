@@ -65,7 +65,9 @@ function initializeHandsontable() {
         afterChange: (changes, source) => {
             if (source === 'edit' && changes) {
                 const [row, prop, oldValue, newValue] = changes[0];
-                resourceData[row][prop] = newValue;
+                if (resourceData[row]) {
+                    resourceData[row][prop] = newValue;
+                }
             }
         }
     });
@@ -214,10 +216,13 @@ function formatLabelsForTable(labels) {
     return html;
 }
 
-function getLabelFilterOptions(column) {
+// Get Label Filter Options
+function getLabelFilterOptions() {
     const labelsSet = new Set();
     resourceData.forEach(row => {
-        (row.labels || []).forEach(label => labelsSet.add(label));
+        (row.labels || []).forEach(label => {
+            labelsSet.add(label);
+        });
     });
     return Array.from(labelsSet).sort();
 }
@@ -255,7 +260,7 @@ function applyStatusHighlighting() {
             const cellProperties = {};
             const resource = resourceData[row];
             
-            if (col === 3 && isResourceUpdating(resource, resource.resourceType)) {
+            if (resource && col === 3 && isResourceUpdating(resource, resource.resourceType)) {
                 cellProperties.className = 'updating-row';
             }
             return cellProperties;
