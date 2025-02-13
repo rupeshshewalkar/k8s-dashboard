@@ -343,7 +343,6 @@ function formatLabels(labels) {
 }
 
 // Perform Rollout Restart
-let restartingResources = new Map();
 async function performRolloutRestart() {
     const namespace = elements.namespace.value;
     if (!namespace) {
@@ -385,65 +384,6 @@ async function performRolloutRestart() {
     });
     // In performRolloutRestart function, after unchecking checkboxes:
     alert("Rollout restart triggered for selected resources.");
-<<<<<<< HEAD
-    restartingResources.clear();
-    selectedResources.forEach(checkbox => {
-        const row = checkbox.closest('tr');
-        const resourceName = row.querySelector('td:nth-child(4)').textContent;
-        const resourceType = elements.resourceType.value;
-        restartingResources.set(resourceName, {
-          type: resourceType,
-          targetReady: getTargetReadyState(row, resourceType)
-        });
-        row.classList.add('restarting');
-    });
-    // Modify polling logic
-    const poll = setInterval(async () => {
-        if (pollAttempts >= maxPollAttempts) {
-        restartingResources.clear();
-        clearInterval(poll);
-        alert("Status refresh completed.");
-        return;
-        }
-        
-        await handleSearch();
-        updateResourceStatusIndicators();
-        pollAttempts++;
-    }, pollInterval);
-}
-function getTargetReadyState(row, resourceType) {
-    const readyCell = Array.from(row.children).find(td => td.textContent.includes('/'));
-    return readyCell ? readyCell.textContent.split('/')[1] : null;
-}
-function updateResourceStatusIndicators() {
-    document.querySelectorAll('#resourcesList tr').forEach(row => {
-      const resourceName = row.querySelector('td:nth-child(4)').textContent;
-      if (!restartingResources.has(resourceName)) return;
-  
-      const currentReady = row.querySelector('td:nth-child(6)').textContent;
-      const { type, targetReady } = restartingResources.get(resourceName);
-      
-      row.classList.remove('restarting', 'ready', 'error');
-      
-      if (type === 'pod') {
-        const status = row.querySelector('td:nth-child(7)').textContent;
-        if (status === 'Running') {
-          row.classList.add('ready');
-          restartingResources.delete(resourceName);
-        } else if (status.includes('Err')) {
-          row.classList.add('error');
-        }
-      } else {
-        const [current, total] = currentReady.split('/');
-        if (current === targetReady) {
-          row.classList.add('ready');
-          restartingResources.delete(resourceName);
-        } else {
-          row.classList.add('restarting');
-        }
-      }
-    });
-=======
     // Immediately refresh and start polling
     await handleSearch();
     let isPolling = true;
@@ -493,8 +433,8 @@ function isResourceUpdating(resource, resourceType) {
         default:
             return false;
     }
->>>>>>> 1566292 (few changes add)
 }
+
 // Initialize Function
 async function initialize() {
     const username = await checkAuthentication();
