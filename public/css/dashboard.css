@@ -210,7 +210,6 @@ body {
 .form-inline .form-group {
     margin-right: 15px; /* Consistent spacing between form elements */
 }
-<<<<<<< HEAD
 .restarting {
     background-color: #fff3cd !important; /* Yellow for in-progress */
     transition: background-color 0.3s ease;
@@ -223,10 +222,7 @@ body {
 .error {
     background-color: #f8d7da !important; /* Red for errors */
 }
-  
-.highlighted {
-    background-color: #e2e3e5 !important;
-=======
+
 /* Highlight updating rows */
 .updating-row {
     background-color: #fff3cd !important; /* Light yellow background */
@@ -244,5 +240,28 @@ body {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
->>>>>>> 1566292 (few changes add)
+}
+
+/* css/dashboard.css */
+.hot-container {
+    height: 70vh;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.ht_master .wtHolder {
+    height: 100% !important;
+}
+
+.label-pill {
+    display: inline-block;
+    background: #e0e0e0;
+    border-radius: 12px;
+    padding: 2px 8px;
+    margin: 2px;
+    font-size: 0.85em;
+}
+
+.checkbox-header {
+    text-align: center;
 }
