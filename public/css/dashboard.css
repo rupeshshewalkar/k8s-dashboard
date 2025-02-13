@@ -263,7 +263,6 @@ body {
     font-size: 0.85em;
     white-space: nowrap;
 }
-
 .handsontable .htFiltersMenu .ht_master .wtHolder {
     max-height: 200px;
     overflow-y: auto;
@@ -286,5 +285,5 @@ body {
     background: #f8f9fa;
     font-weight: 600;
     color: #495057;
-    border-color: #dee2e6 !important;
+    border-bottom: 2px solid #dee2e6;
 }

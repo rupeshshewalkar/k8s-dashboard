@@ -1,4 +1,4 @@
-// Initialize DOM Elements
+// dashboard.js
 const elements = {
     namespace: document.getElementById("namespace"),
     resourceType: document.getElementById("resourceType"),
@@ -193,7 +193,9 @@ function updateHandsontable() {
 }
 
 function labelsRenderer(instance, td, row, col, prop, value) {
-    td.innerHTML = formatLabelsForTable(value);
+    td.innerHTML = value.map(label => 
+        `<div class="label-pill">${label}</div>`
+    ).join('');
     td.style.whiteSpace = 'normal';
     return td;
 }
@@ -227,17 +229,23 @@ function getLabelFilterOptions() {
     return Array.from(labelsSet).sort();
 }
 
+// Fixed rollout restart for filtered resources
 async function performRolloutRestart() {
-    const selectedRows = resourceData.filter(row => row.selected);
-    if (selectedRows.length === 0) {
-        alert("Please select resources to restart");
+    // Get visible data considering filters
+    const visibleData = hot.getData().filter((_, row) => {
+        const physicalRow = hot.toPhysicalRow(row);
+        return hot.getDataAtRow(physicalRow).selected;
+    });
+
+    if (visibleData.length === 0) {
+        alert("Please select visible resources to restart");
         return;
     }
 
-    if (!confirm(`Restart ${selectedRows.length} selected resources?`)) return;
+    if (!confirm(`Restart ${visibleData.length} selected resources?`)) return;
 
-    const promises = selectedRows.map(async row => {
-        const endpoint = `/api/v1/${row.resourceType.toLowerCase()}s/${row.namespace}/rollout/${row.name}`;
+    const promises = visibleData.map(async resource => {
+        const endpoint = `/api/v1/${resource.resourceType.toLowerCase()}s/${resource.namespace}/rollout/${resource.name}`;
         try {
             const response = await fetch(endpoint, { method: 'POST' });
             return response.ok;
@@ -250,7 +258,7 @@ async function performRolloutRestart() {
     const results = await Promise.all(promises);
     const successCount = results.filter(status => status).length;
     
-    alert(`Successfully restarted ${successCount}/${selectedRows.length} resources`);
+    alert(`Successfully restarted ${successCount}/${visibleData.length} resources`);
     await handleSearch();
 }
 
@@ -264,7 +272,7 @@ function applyStatusHighlighting() {
                 cellProperties.className = 'updating-row';
             }
             return cellProperties;
-        }
+    }
     });
 }
 
