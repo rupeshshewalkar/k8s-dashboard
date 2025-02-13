@@ -1,5 +1,4 @@
 // dashboard.js
-// Initialize DOM Elements
 const elements = {
     namespace: document.getElementById("namespace"),
     resourceType: document.getElementById("resourceType"),
@@ -32,6 +31,7 @@ const ui = {
 
 // Initialize Handsontable
 function initializeHandsontable() {
+    console.log("Initializing Handsontable...");
     hot = new Handsontable(elements.hotContainer, {
         data: resourceData,
         colHeaders: ['Select', 'Namespace', 'Type', 'Name', 'Labels', 'Ready', 'Up-to-date', 'Age'],
@@ -70,6 +70,7 @@ function initializeHandsontable() {
             }
         }
     });
+    console.log("Handsontable initialized:", hot);
 }
 
 // Event Listeners
@@ -98,11 +99,16 @@ async function handleSearch() {
     }
 
     try {
+        console.log("Fetching resources...");
         const data = await fetchResources(namespace, resourceType);
+        console.log("API Response:", data);
+        
         resourceData = data.map(item => ({ 
             ...item, 
             selected: false 
         }));
+        console.log("Resource Data:", resourceData);
+        
         updateHandsontable();
         applyStatusHighlighting();
     } catch (error) {
@@ -189,6 +195,7 @@ function transformLabels(labels) {
 
 // Update Handsontable
 function updateHandsontable() {
+    console.log("Updating Handsontable with data:", resourceData);
     hot.updateSettings({
         data: resourceData,
         columns: getColumnsConfig()
@@ -335,6 +342,7 @@ function isResourceUpdating(resource, resourceType) {
 
 // Initialize Function
 async function initialize() {
+    console.log("Initializing dashboard...");
     const username = await checkAuthentication();
     const namespaces = await fetchNamespaces();
     ui.populateNamespaces(namespaces);

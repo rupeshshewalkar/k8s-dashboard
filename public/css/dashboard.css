@@ -246,6 +246,7 @@ body {
 /* dashboard.css */
 .hot-container {
     height: 70vh;
+    width: 100%;
     overflow: hidden;
     margin-top: 20px;
 }
