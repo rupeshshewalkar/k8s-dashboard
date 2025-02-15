@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <!-- Add Virtual Select CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/virtual-select-plugin@1.0.33/dist/virtual-select.min.css">
     <link rel="stylesheet" href="/css/dashboard.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,9 +17,10 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="#">
-            <img src="/images/kubernetes-logo.png" alt="Kubernetes Logo" > <!-- Kubernetes logo -->
-            <img src="/images/kubernetes-logo-text.svg" alt="Kubernetes Logo Text" > <!-- Kubernetes logo text -->
-        </a>        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <img src="/images/kubernetes-logo.png" alt="Kubernetes Logo">
+            <img src="/images/kubernetes-logo-text.svg" alt="Kubernetes Logo Text">
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
@@ -55,8 +55,8 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="resourceName" class="mr-2">Name:</label>
-                        <select id="resourceName" name="resourceName" multiple></select>
+                        <label class="mr-2">Name:</label>
+                        <div id="nameSelect"></div>
                     </div>
                     <div class="form-group">
                         <input type="text" id="labelSearch" class="form-control" placeholder="Search by label..." />
@@ -94,7 +94,6 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <!-- Add Virtual Select JS -->
     <script src="https://cdn.jsdelivr.net/npm/virtual-select-plugin@1.0.33/dist/virtual-select.min.js"></script>
     <script src="/js/common.js"></script>
     <script src="/js/dashboard.js"></script>
