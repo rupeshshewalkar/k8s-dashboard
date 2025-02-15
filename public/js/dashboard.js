@@ -1,15 +1,13 @@
-// Initialize DOM Elements
 const elements = {
     namespace: document.getElementById("namespace"),
-    resourceName: document.getElementById("resourceName"),
     labelSearch: document.getElementById("labelSearch"),
     strict: document.getElementById("strict"),
     selectAll: document.getElementById("selectAll"),
     resourcesList: document.getElementById("resourcesList"),
-    resourceType: document.getElementById("resourceType")
+    resourceType: document.getElementById("resourceType"),
+    nameSelect: document.getElementById("nameSelect")
 };
 
-// UI Object
 const ui = {
     populateNamespaces: function(namespaces) {
         const namespaceSelect = elements.namespace;
@@ -27,77 +25,95 @@ const ui = {
             option.textContent = namespace;
             namespaceSelect.appendChild(option);
         });
-    },
-
-    initNameSelect: function() {
-        VirtualSelect.init({
-            ele: '#resourceName',
-            multiple: true,
-            search: true,
-            placeholder: 'Select resource name(s)',
-            noOptionsText: 'No resources found',
-            noSearchResultsText: 'No matches found',
-            optionsCount: 8,
-            showValueAsTags: true,
-            allowNewOption: false,
-            markSearchResults: true,
-            zIndex: 9999
-        });
-    },
-
-    updateNameSelect: function(resources) {
-        const options = resources.map(resource => ({
-            label: resource.name,
-            value: resource.name
-        }));
-        VirtualSelect.setOptions('#resourceName', options);
     }
 };
 
-// Event Listeners
 function setupEventListeners() {
     document.getElementById("searchButton").addEventListener("click", handleSearch);
     document.getElementById("rolloutRestartButton").addEventListener("click", performRolloutRestart);
     
-    elements.namespace.addEventListener('change', handleNamespaceOrTypeChange);
-    elements.resourceType.addEventListener('change', handleNamespaceOrTypeChange);
+    elements.namespace.addEventListener('change', updateNameFilters);
+    elements.resourceType.addEventListener('change', updateNameFilters);
+    
+    elements.resourcesList.addEventListener('change', function(event) {
+        if (event.target.classList.contains("resourceCheckbox")) {
+            const row = event.target.closest('tr');
+            row.classList.toggle("highlighted", event.target.checked);
+            
+            const allCheckboxes = document.querySelectorAll(".resourceCheckbox");
+            const allChecked = Array.from(allCheckboxes).every(checkbox => checkbox.checked);
+            const anyChecked = Array.from(allCheckboxes).some(checkbox => checkbox.checked);
+            elements.selectAll.indeterminate = !allChecked && anyChecked;
+            elements.selectAll.checked = allChecked;
+        }
+    });
 
-    // Existing event listeners unchanged...
+    elements.labelSearch.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") handleSearch();
+    });
+
+    document.getElementById('logoutButton').addEventListener('click', async function() {
+        const response = await fetch('/logout', { method: 'POST' });
+        if (response.ok) window.location.href = '/';
+        else alert('Logout failed');
+    });
+
+    elements.resourcesList.addEventListener('click', function(event) {
+        if (event.target.classList.contains('toggle-labels')) {
+            event.preventDefault();
+            const link = event.target;
+            const hiddenLabels = link.previousElementSibling;
+            hiddenLabels.classList.toggle('hidden-labels');
+            link.textContent = hiddenLabels.classList.contains('hidden-labels') ? 
+                `(+${hiddenLabels.children.length} more)` : '(Show less)';
+        }
+    });
 }
 
-// New handler for namespace/resource type changes
-async function handleNamespaceOrTypeChange() {
-    const namespace = elements.namespace.value;
+async function updateNameFilters() {
+    const namespace = elements.namespace.value.trim();
     const resourceType = elements.resourceType.value;
     
-    if (!namespace || !resourceType) {
-        VirtualSelect.setOptions('#resourceName', []);
-        return;
+    if (window.nameSelectInstance) {
+        window.nameSelectInstance.destroy();
     }
-    
+
+    if (!namespace) return;
+
     try {
-        let resources = [];
-        switch(resourceType) {
-            case 'deployment':
-                resources = await fetchDeployments(namespace);
-                break;
-            case 'statefulset':
-                resources = await fetchStatefulSets(namespace);
-                break;
-            case 'pod':
-                resources = await fetchPods(namespace);
-                break;
-        }
-        ui.updateNameSelect(resources);
+        const names = await fetchResourceNames(namespace, resourceType);
+        initializeNameSelect(names);
     } catch (error) {
-        console.error('Error loading resources:', error);
+        console.error("Error fetching names:", error);
     }
 }
 
-// Modified handleSearch function
+function initializeNameSelect(names) {
+    const options = names.map(name => ({ label: name, value: name }));
+    
+    window.nameSelectInstance = VirtualSelect.init({
+        ele: '#nameSelect',
+        options: options,
+        multiple: true,
+        search: true,
+        placeholder: 'Select resource names',
+        noOptionsText: 'No resources found',
+        noSearchResultsText: 'No matching resources',
+        optionsSelectedText: 'resources selected',
+        optionSelectedText: 'resource selected',
+        allOptionsSelectedText: 'All resources',
+        showValueAsTags: true,
+        maxWidth: '300px'
+    });
+}
+
+function getSelectedNames() {
+    return window.nameSelectInstance ? window.nameSelectInstance.getValue() : [];
+}
+
 async function handleSearch() {
     const namespace = elements.namespace.value.trim();
-    const selectedNames = elements.resourceName.value || [];
+    const selectedNames = getSelectedNames();
     const labelSearchTerm = elements.labelSearch.value.trim();
     const isStrictSearch = elements.strict.checked;
     const resourceType = elements.resourceType.value;
@@ -125,7 +141,7 @@ async function handleSearch() {
         }
         displayResources(filteredResources, resourceType);
     } catch (error) {
-        console.error("Error during search:", error);
+        console.error("Search error:", error);
         alert("Failed to fetch resources. Please try again.");
     }
 }
@@ -459,12 +475,8 @@ async function initialize() {
     const username = await checkAuthentication();
     const namespaces = await fetchNamespaces();
     ui.populateNamespaces(namespaces);
-    ui.initNameSelect();
     setupEventListeners();
     displayUsername(username);
-    
-    // Initial load if namespace is preselected
-    setTimeout(() => handleNamespaceOrTypeChange(), 100);
 }
 
 document.addEventListener("DOMContentLoaded", initialize);
